@@ -1,5 +1,14 @@
 const { SlashCommandBuilder } = require('discord.js');
 
+// Configuration - Set your allowed role IDs here
+const ALLOWED_VERIFY_ROLES = ['1430101468253388851']; // IDs of roles that can use this command
+const ALLOWED_CHOICE_ROLES = [
+  '1430101502244163644', // Role option 1
+  '1430101478240157696', // Role option 2
+  '1430101478231773266'  // Role option 3
+];
+const ASSIGN_ROLE = '1430101478776766475'; // Role to be given to all verified users
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('verify')
@@ -29,6 +38,22 @@ module.exports = {
     const choiceRole = interaction.options.getRole('choice_role');
 
     try {
+      // Check if the verify role is in the allowed list
+      if (!ALLOWED_VERIFY_ROLES.includes(verifyRole.id)) {
+        return interaction.reply({
+          content: `❌ The role ${verifyRole} is not allowed to be assigned!`,
+          ephemeral: true
+        });
+      }
+
+      // Check if the choice role is in the allowed list
+      if (!ALLOWED_CHOICE_ROLES.includes(choiceRole.id)) {
+        return interaction.reply({
+          content: `❌ The role ${choiceRole} is not in the allowed choice roles!`,
+          ephemeral: true
+        });
+      }
+
       // Get the member object
       const member = await interaction.guild.members.fetch(targetUser.id);
 
@@ -41,11 +66,11 @@ module.exports = {
       }
 
       // Give the user both roles
-      await member.roles.add(verifyRole);
+      await member.roles.add(ASSIGN_ROLE);
       await member.roles.add(choiceRole);
 
       await interaction.reply({
-        content: `✅ Successfully verified ${targetUser} with roles:\n- ${verifyRole}\n- ${choiceRole}`,
+        content: `✅ Successfully verified <@${targetUser.id}> with roles:\n- <@&${ASSIGN_ROLE}>\n- <@&${choiceRole.id}>`,
         ephemeral: false
       });
 
