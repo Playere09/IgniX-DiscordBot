@@ -11,8 +11,9 @@ const ALLOWED_CHOICE_ROLES = [
 ];
 const ASSIGN_ROLE = '1430101478776766475'; // Role to be given to all verified users
 
-// Data file path
+// Data file paths
 const dataPath = path.join(__dirname, '../data/verifications.json');
+const logsPath = path.join(__dirname, '../data/logs.json');
 
 // Load or create data
 function loadData() {
@@ -25,6 +26,19 @@ function loadData() {
 // Save data
 function saveData(data) {
   fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
+}
+
+// Load or create logs
+function loadLogs() {
+  if (!fs.existsSync(logsPath)) {
+    fs.writeFileSync(logsPath, JSON.stringify({ logs: [] }, null, 2));
+  }
+  return JSON.parse(fs.readFileSync(logsPath, 'utf-8'));
+}
+
+// Save logs
+function saveLogs(logs) {
+  fs.writeFileSync(logsPath, JSON.stringify(logs, null, 2));
 }
 
 module.exports = {
@@ -94,6 +108,21 @@ module.exports = {
       });
       
       saveData(data);
+
+      // Log the action
+      const logs = loadLogs();
+      logs.logs.push({
+        timestamp: new Date().toISOString(),
+        verifierId: verifierId,
+        verifierTag: interaction.user.tag,
+        userId: userId,
+        userTag: targetUser.tag,
+        roleId: choiceRoleId,
+        roleName: roleNames[choiceRoleId],
+        guildId: interaction.guild.id,
+        guildName: interaction.guild.name
+      });
+      saveLogs(logs);
 
       const roleNames = {
         '1430101502244163644': 'Sword',
