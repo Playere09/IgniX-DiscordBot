@@ -19,58 +19,40 @@ module.exports = {
         .setDescription('The user to verify')
         .setRequired(true)
     )
-    .addRoleOption(option =>
+    .addStringOption(option =>
       option
         .setName('role')
-        .setDescription('The verification role to assign')
-        .setRequired(true)
-    )
-    .addRoleOption(option =>
-      option
-        .setName('choice_role')
         .setDescription('Choose 1 role from 3 options')
         .setRequired(true)
+        .addChoices(
+          { name: 'Role 1', value: '1430101502244163644' },
+          { name: 'Role 2', value: '1430101478240157696' },
+          { name: 'Role 3', value: '1430101478231773266' }
+        )
     ),
 
   async execute(interaction, client) {
     const targetUser = interaction.options.getUser('user');
-    const verifyRole = interaction.options.getRole('role');
-    const choiceRole = interaction.options.getRole('choice_role');
+    const choiceRoleId = interaction.options.getString('role');
 
     try {
-      // Check if the verify role is in the allowed list
-      if (!ALLOWED_VERIFY_ROLES.includes(verifyRole.id)) {
-        return interaction.reply({
-          content: `❌ The role ${verifyRole} is not allowed to be assigned!`,
-          ephemeral: true
-        });
-      }
-
-      // Check if the choice role is in the allowed list
-      if (!ALLOWED_CHOICE_ROLES.includes(choiceRole.id)) {
-        return interaction.reply({
-          content: `❌ The role ${choiceRole} is not in the allowed choice roles!`,
-          ephemeral: true
-        });
-      }
-
       // Get the member object
       const member = await interaction.guild.members.fetch(targetUser.id);
 
       // Check if the command user has the verify role
-      if (!interaction.member.roles.cache.has(verifyRole.id)) {
+      if (!interaction.member.roles.cache.has(ALLOWED_VERIFY_ROLES[0])) {
         return interaction.reply({
-          content: `❌ You need the ${verifyRole} role to use this command!`,
+          content: `❌ You need the verify role to use this command!`,
           ephemeral: true
         });
       }
 
-      // Give the user both roles
+      // Give the user the assign role and the chosen role
       await member.roles.add(ASSIGN_ROLE);
-      await member.roles.add(choiceRole);
+      await member.roles.add(choiceRoleId);
 
       await interaction.reply({
-        content: `✅ Successfully verified <@${targetUser.id}> with roles:\n- <@&${ASSIGN_ROLE}>\n- <@&${choiceRole.id}>`,
+        content: `✅ Successfully verified <@${targetUser.id}> with roles:\n- <@&${ASSIGN_ROLE}>\n- <@&${choiceRoleId}>`,
         ephemeral: false
       });
 
