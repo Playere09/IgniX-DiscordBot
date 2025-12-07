@@ -131,26 +131,31 @@ module.exports = {
       });
       saveLogs(logs);
 
-      // Post log to logs channel
-      try {
-        const logsChannel = await client.channels.fetch(LOGS_CHANNEL_ID);
-        if (logsChannel) {
-          const logEmbed = new EmbedBuilder()
-            .setColor('#0099ff')
-            .setTitle('📋 Verification Log')
-            .addFields(
-              { name: 'Verifier', value: `<@${verifierId}> (${interaction.user.tag})`, inline: true },
-              { name: 'User Verified', value: `<@${userId}> (${targetUser.tag})`, inline: true },
-              { name: 'Role Given', value: roleNames[choiceRoleId], inline: true },
-              { name: 'Guild', value: interaction.guild.name, inline: true },
-              { name: 'Time', value: new Date().toLocaleString(), inline: true }
-            )
-            .setTimestamp();
-          await logsChannel.send({ embeds: [logEmbed] });
+      // Post log to logs channel (non-blocking with timeout)
+      setImmediate(async () => {
+        try {
+          const logsChannel = await Promise.race([
+            client.channels.fetch(LOGS_CHANNEL_ID),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+          ]);
+          if (logsChannel && logsChannel.isSendable?.()) {
+            const logEmbed = new EmbedBuilder()
+              .setColor('#0099ff')
+              .setTitle('📋 Verification Log')
+              .addFields(
+                { name: 'Verifier', value: `<@${verifierId}> (${interaction.user.tag})`, inline: true },
+                { name: 'User Verified', value: `<@${userId}> (${targetUser.tag})`, inline: true },
+                { name: 'Role Given', value: roleNames[choiceRoleId], inline: true },
+                { name: 'Guild', value: interaction.guild.name, inline: true },
+                { name: 'Time', value: new Date().toLocaleString(), inline: true }
+              )
+              .setTimestamp();
+            await logsChannel.send({ embeds: [logEmbed] });
+          }
+        } catch (logError) {
+          console.error('Error posting to logs channel:', logError.message);
         }
-      } catch (logError) {
-        console.error('Error posting to logs channel:', logError);
-      }
+      });
 
       await interaction.reply({
         content: `✅ Successfully verified <@${targetUser.id}> with roles:\n- <@&${ASSIGN_ROLE}>\n- ${roleNames[choiceRoleId]}`,
