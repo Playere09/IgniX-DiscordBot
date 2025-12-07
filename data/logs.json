@@ -1,3 +1,15 @@
 {
-  "logs": []
+  "logs": [
+    {
+      "timestamp": "2025-12-07T08:34:56.235Z",
+      "verifierId": "1341062557783425104",
+      "verifierTag": "playere09",
+      "userId": "1190907350077423736",
+      "userTag": "karan4d",
+      "roleId": "1430101502244163644",
+      "roleName": "Sword",
+      "guildId": "1429889561059790890",
+      "guildName": "IgniX | 1.9+"
+    }
+  ]
 }
