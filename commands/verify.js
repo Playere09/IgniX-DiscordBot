@@ -68,6 +68,12 @@ module.exports = {
     const choiceRoleId = interaction.options.getString('role');
     const verifierId = interaction.user.id;
 
+    const roleNames = {
+      '1430101502244163644': 'Sword',
+      '1430101478240157696': 'Grinder',
+      '1430101478231773266': 'Crystal'
+    };
+
     try {
       // Get the member object
       const member = await interaction.guild.members.fetch(targetUser.id);
@@ -123,12 +129,6 @@ module.exports = {
         guildName: interaction.guild.name
       });
       saveLogs(logs);
-
-      const roleNames = {
-        '1430101502244163644': 'Sword',
-        '1430101478240157696': 'Grinder',
-        '1430101478231773266': 'Crystal'
-      };
 
       await interaction.reply({
         content: `✅ Successfully verified <@${targetUser.id}> with roles:\n- <@&${ASSIGN_ROLE}>\n- ${roleNames[choiceRoleId]}`,
