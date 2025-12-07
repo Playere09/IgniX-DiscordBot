@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -10,6 +10,7 @@ const ALLOWED_CHOICE_ROLES = [
   '1430101478231773266'  // Crystal
 ];
 const ASSIGN_ROLE = '1430101478776766475'; // Role to be given to all verified users
+const LOGS_CHANNEL_ID = '1430584575175692300'; // Channel to post logs to
 
 // Data file paths
 const dataPath = path.join(__dirname, '../data/verifications.json');
@@ -129,6 +130,27 @@ module.exports = {
         guildName: interaction.guild.name
       });
       saveLogs(logs);
+
+      // Post log to logs channel
+      try {
+        const logsChannel = await client.channels.fetch(LOGS_CHANNEL_ID);
+        if (logsChannel) {
+          const logEmbed = new EmbedBuilder()
+            .setColor('#0099ff')
+            .setTitle('📋 Verification Log')
+            .addFields(
+              { name: 'Verifier', value: `<@${verifierId}> (${interaction.user.tag})`, inline: true },
+              { name: 'User Verified', value: `<@${userId}> (${targetUser.tag})`, inline: true },
+              { name: 'Role Given', value: roleNames[choiceRoleId], inline: true },
+              { name: 'Guild', value: interaction.guild.name, inline: true },
+              { name: 'Time', value: new Date().toLocaleString(), inline: true }
+            )
+            .setTimestamp();
+          await logsChannel.send({ embeds: [logEmbed] });
+        }
+      } catch (logError) {
+        console.error('Error posting to logs channel:', logError);
+      }
 
       await interaction.reply({
         content: `✅ Successfully verified <@${targetUser.id}> with roles:\n- <@&${ASSIGN_ROLE}>\n- ${roleNames[choiceRoleId]}`,
